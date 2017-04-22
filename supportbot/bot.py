@@ -81,6 +81,12 @@ class Bot(object):
     def main(self) -> None:
         raise NotImplementedError()
 
+    def get_service_by_name(self, name):
+        for service in self.services:
+            if service.name == name:
+                return service
+        return None
+
     def load_state(self) -> None:
         try:
             with open(self.state_path, "rb") as f:

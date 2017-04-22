@@ -1,6 +1,7 @@
 import logging
 from typing import List, Type  # noqa
-from mastodon import Mastodon as MastodonClient
+from .mastodon.Mastodon import Mastodon as MastodonClient
+from .mastodon.streaming import StreamListener
 import tweepy
 from tweepy.error import TweepError
 
@@ -30,6 +31,12 @@ class Service(object):
              lon: float=None) -> None:
         if self.live:
             self.do_post(status, imagefile, lat, lon)
+
+    def get_client(self):
+        raise NotImplementedError()
+
+    def stream_user(self, listener):
+        raise NotImplementedError()
 
     def do_post(self,
                 status: str,
@@ -90,6 +97,12 @@ class Twitter(Service):
         except TweepError as e:
             raise PostError(e)
 
+    def stream_user(self, listener):
+        raise NotImplementedError()
+
+    def get_client(self):
+        return self.tweepy
+
 
 class Mastodon(Service):
     name = 'mastodon'
@@ -131,6 +144,13 @@ class Mastodon(Service):
         self.config.set('mastodon', 'access_token', mastodon.access_token)
 
         return True
+
+    def get_client(self):
+        return self.mastodon
+
+    def stream_user(self, listener):
+        """"This method blocks forever"""
+        self.mastodon.user_stream(listener)
 
     def do_post(self, status, imagefile=None, lat=None, lon=None):
         try:
