@@ -1,0 +1,11 @@
+appdirs==1.4.3
+dateutils==0.6.6
+oauthlib==2.0.2
+packaging==16.8
+pyparsing==2.2.0
+python-dateutil==2.6.0
+pytz==2017.2
+requests==2.13.0
+requests-oauthlib==0.8.0
+six==1.10.0
+tweepy==3.5.0

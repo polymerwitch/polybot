@@ -1,7 +1,7 @@
 import logging
 from typing import List, Type  # noqa
-from .mastodon.Mastodon import Mastodon as MastodonClient
-from .mastodon.streaming import StreamListener
+from mastodon.Mastodon import Mastodon as MastodonClient
+from mastodon.streaming import StreamListener
 import tweepy
 from tweepy.error import TweepError
 
@@ -135,6 +135,10 @@ class Mastodon(Service):
         email = input("Email address: ")
         password = input("Password: ")
         mastodon.log_in(email, password)
+
+        username = input("Bot Username: ")
+        admins = input("Enter admin usernames (ie. bob sue xena): ")
+
         print("Successfully authenticated to Mastodon")
 
         self.config.add_section('mastodon')
@@ -142,6 +146,9 @@ class Mastodon(Service):
         self.config.set('mastodon', 'client_id', client_id)
         self.config.set('mastodon', 'client_secret', client_secret)
         self.config.set('mastodon', 'access_token', mastodon.access_token)
+        self.config.add_section('support_bot')
+        self.config.set('support_bot', 'username', username)
+        self.config.set('support_bot', 'admins', admins)
 
         return True
 
@@ -165,4 +172,4 @@ class Mastodon(Service):
             raise PostError(e)
 
 
-ALL_SERVICES = [Twitter, Mastodon]  # type: List[Type[Service]]
+ALL_SERVICES = [Mastodon]  # type: List[Type[Service]]

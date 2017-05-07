@@ -3,7 +3,7 @@ import pickle
 import logging
 import argparse
 from typing import List, Type, Dict  # noqa
-from .service import Service, PostError, ALL_SERVICES  # noqa
+from service import Service, PostError, ALL_SERVICES  # noqa
 
 
 class Bot(object):
@@ -29,7 +29,7 @@ class Bot(object):
     def run(self) -> None:
         self.args = self.parser.parse_args()
         profile = ''
-        if len(self.args.profile):
+        if self.args.profile and len(self.args.profile):
           profile = '-%s' % self.args.profile
         self.config_path = '%s%s.conf' % (self.name, profile)
         self.state_path = '%s%s.state' % (self.name, profile)
@@ -60,7 +60,7 @@ class Bot(object):
             self.log.info("Shut down")
 
     def setup(self) -> None:
-        print("Polybot setup")
+        print("SuportBot setup")
         print("=" * 80)
         for Svc in ALL_SERVICES:
             if Svc.name not in self.config:
@@ -83,6 +83,7 @@ class Bot(object):
 
     def get_service_by_name(self, name):
         for service in self.services:
+            print(service.name)
             if service.name == name:
                 return service
         return None

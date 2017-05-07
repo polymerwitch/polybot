@@ -1,46 +1,63 @@
 # -*- coding: utf-8 -*-
 
-from .bot import Bot
-from .mastodon.streaming import StreamListener
+from html.parser import HTMLParser
 
 
-ADMINS = [
-    "polymerwitch",
-    "cyrinsong",
-    "wavebeem",
-    "ashkitten"
-]
+from bot import Bot
+from mastodon.streaming import StreamListener
+
+
+class MLStripper(HTMLParser):
+    def __init__(self):
+        self.reset()
+        self.strict = False
+        self.convert_charrefs = True
+        self.fed = []
+
+    def handle_data(self, d):
+        self.fed.append(d)
+
+    def get_data(self):
+        return ''.join(self.fed)
+
+
+def strip_tags(html):
+    s = MLStripper()
+    s.feed(html)
+    return s.get_data()
+
 
 class SupportListener(StreamListener):
 
     def set_client(self, client):
         self.client = client
+        admin_list = self.client.config.get('support_bot', 'admins')
+        self.admins = admin_list.split()
 
     def on_notification(self, notification):
-        """Notification:
-        { id: <The notification ID>,
-          type:	<One of: "mention", "reblog", "favourite", "follow">,
-          created_at: <The time the notification was created>,
-          account: <The Account sending the notification to the user>,
-          status: <The Status associated with the notification, if applicable>
-        }"""
-
         # Do stuff with the notification
-        if not self.client or notification.type != "mention":
+        if not self.client or notification['type'] != "mention":
             return
 
-        isAdmin = notification.account.username in ADMINS
+        if notification['status']['in_reply_to_id'] is not None:
+            return
+
+        isAdmin = notification['account']['username'] in self.admins
         if isAdmin:
             #relay toot
-            body = notification.status.content + "\n\n--@" + notification.account.username
+            body = strip_tags(notification['status']['content']) + "\n\n--@" + notification['account']['username']
+            if body.startswith('@' + self.client.config.get('support_bot', 'username') + ' '):
+                body = body[9:]
             self.client.get_client().status_post(body, visibility='public')
         else:
             #reply with help message
-            body = "Hi, @" + notification.account.username + "\n\n"
+            body = "Hi, @" + notification['account']['username'] + "\n\n"
             body += "Thank you for using toot.cat! I'm just a support catbot, but I'm sure our admins will help you soon"
             body += "\n\n"
-            body += "cc) @polymerwitch @cyrinsong @wavebeem @ashkitten"
-            self.client.get_client().status_post(body, in_reply_to_id=notification.status.id, visibility='private')
+            body += "cc) "
+            for admin in self.admins:
+                body += "@" + admin + " "
+            self.client.get_client().status_post(body, in_reply_to_id=notification['status']['id'], visibility='private')
 
 
 class SupportBot(Bot):
@@ -50,3 +67,4 @@ class SupportBot(Bot):
         listener = SupportListener()
         listener.set_client(masto_service)
         masto_service.stream_user(listener)
+
