@@ -57,7 +57,8 @@ class SupportListener(StreamListener):
         else:
             #reply with help message
             body = "Hi, @" + notification['account']['username'] + "\n\n"
-            body += "Thank you for using toot.cat! I'm just a support catbot, but I'm sure our admins will help you soon"
+            body += self.client.config.get('support_bot', 'reply_txt',
+                                           fallback="Thank you for using Mastodon! I'm just a support bot, but I'm sure our admins will help you soon")
             body += "\n\n"
             body += "cc) "
 
