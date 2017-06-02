@@ -44,20 +44,34 @@ class SupportListener(StreamListener):
 
         isAdmin = notification['account']['username'] in self.admins
         if isAdmin:
+            #do not relay if it is no a DM
+            if notification['status']['visibility'] != "direct":
+                return
+
             #relay toot
             body = strip_tags(notification['status']['content']) + "\n\n--@" + notification['account']['username']
-            if body.startswith('@' + self.client.config.get('support_bot', 'username') + ' '):
-                body = body[9:]
+            strippingPart = '@' + self.client.config.get('support_bot', 'username') + ' '
+            if body.startswith(strippingPart):
+                body = body[len(strippingPart):]
             self.client.get_client().status_post(body, visibility='public')
         else:
             #reply with help message
             body = "Hi, @" + notification['account']['username'] + "\n\n"
-            body += "Thank you for using toot.cat! I'm just a support catbot, but I'm sure our admins will help you soon"
+            body += self.client.config.get('support_bot', 'reply_txt',
+                                           fallback="Thank you for using Mastodon! I'm just a support bot, but I'm sure our admins will help you soon")
             body += "\n\n"
             body += "cc) "
+
             for admin in self.admins:
                 body += "@" + admin + " "
-            self.client.get_client().status_post(body, in_reply_to_id=notification['status']['id'], visibility='private')
+
+            replyVisibility = 'private'
+            if notification['status']['visibility'] == 'direct':
+                replyVisibility = 'direct'
+                body += "\n\n"
+                body += strip_tags(notification['status']['content'])
+
+            self.client.get_client().status_post(body, in_reply_to_id=notification['status']['id'], visibility=replyVisibility)
 
 
 class SupportBot(Bot):

@@ -24,7 +24,7 @@ class Mastodon:
 
     If anything is unclear, check the official API docs at
     https://github.com/Gargron/mastodon/wiki/API
-    
+
     Supported:
         Username-Password Login
         OAuth2
@@ -50,7 +50,7 @@ class Mastodon:
 
         Returns client_id and client_secret.
         """
-        
+
         request_data = {
             'client_name': client_name,
             'scopes': " ".join(scopes)
@@ -63,7 +63,7 @@ class Mastodon:
                 request_data['redirect_uris'] = 'urn:ietf:wg:oauth:2.0:oob';
             if website is not None:
                 request_data['website'] = website
-            
+
             response = requests.post(api_base_url + '/api/v1/apps', data = request_data, timeout = request_timeout)
             response = response.json()
         except Exception as e:
@@ -134,24 +134,24 @@ class Mastodon:
         if self.access_token != None and os.path.isfile(self.access_token):
             with open(self.access_token, 'r') as token_file:
                 self.access_token = token_file.readline().rstrip()
-                
-        
+
+
     @property
     def token_expired(self) -> bool:
         if self._token_expired < datetime.datetime.now():
             return True
         else:
             return False
-    
+
     @token_expired.setter
     def token_expired(self, value: int):
         self._token_expired = datetime.datetime.now() + datetime.timedelta(seconds=value)
         return
-    
+
     @property
     def refresh_token(self) -> str:
         return self._refresh_token
-        
+
     @refresh_token.setter
     def refresh_token(self, value):
         self._refresh_token = value
@@ -167,7 +167,7 @@ class Mastodon:
             if os.path.isfile(client_id):
                 with open(client_id, 'r') as secret_file:
                     client_id = secret_file.readline().rstrip()
-                
+
         params = {}
         params['client_id'] = client_id
         params['response_type'] = "code"
@@ -181,16 +181,16 @@ class Mastodon:
             scopes: list = ['read', 'write', 'follow'], to_file: str = None) -> str:
         """
         Docs: https://github.com/doorkeeper-gem/doorkeeper/wiki/Interacting-as-an-OAuth-client-with-Doorkeeper
-        
+
         Notes:
             Your username is the e-mail you use to log in into mastodon.
-            
+
             Can persist access token to file, to be used in the constructor.
-            
+
             Supports refresh_token but Mastodon.social doesn't implement it at the moment.
-    
+
             Handles password, authorization_code, and refresh_token authentication.
-            
+
             Will throw a MastodonIllegalArgumentError if username / password
             are wrong, scopes are not valid or granted scopes differ from requested.
 
@@ -208,11 +208,11 @@ class Mastodon:
             params['grant_type'] = 'refresh_token'
         else:
             raise MastodonIllegalArgumentError('Invalid arguments given. username and password or code are required.')
-        
+
         params['client_id'] = self.client_id
         params['client_secret'] = self.client_secret
         params['scope'] = " ".join(scopes)
-        
+
         try:
             response = self.__api_request('POST', '/oauth/token', params, do_ratelimiting = False)
             self.access_token = response['access_token']
@@ -403,7 +403,7 @@ class Mastodon:
         """
         params = self.__generate_params(locals())
         return self.__api_request('GET', '/api/v1/accounts/search', params)
-   
+
 
     def content_search(self, q, resolve = False):
         """
@@ -489,7 +489,7 @@ class Mastodon:
         params_initial = locals()
 
         # Validate visibility parameter
-        valid_visibilities = ['private', 'public', 'unlisted', '']
+        valid_visibilities = ['private', 'public', 'unlisted', 'direct', '']
         if params_initial['visibility'].lower() not in valid_visibilities:
             raise ValueError('Invalid visibility value! Acceptable values are %s' % valid_visibilities)
 
