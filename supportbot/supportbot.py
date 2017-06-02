@@ -50,8 +50,9 @@ class SupportListener(StreamListener):
 
             #relay toot
             body = strip_tags(notification['status']['content']) + "\n\n--@" + notification['account']['username']
-            if body.startswith('@' + self.client.config.get('support_bot', 'username') + ' '):
-                body = body[9:]
+            strippingPart = '@' + self.client.config.get('support_bot', 'username') + ' '
+            if body.startswith(strippingPart):
+                body = body[len(strippingPart):]
             self.client.get_client().status_post(body, visibility='public')
         else:
             #reply with help message
