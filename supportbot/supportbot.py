@@ -60,9 +60,17 @@ class SupportListener(StreamListener):
             body += "Thank you for using toot.cat! I'm just a support catbot, but I'm sure our admins will help you soon"
             body += "\n\n"
             body += "cc) "
+
             for admin in self.admins:
                 body += "@" + admin + " "
-            self.client.get_client().status_post(body, in_reply_to_id=notification['status']['id'], visibility='private')
+
+            replyVisibility = 'private'
+            if notification['status']['visibility'] == 'direct':
+                replyVisibility = 'direct'
+                body += "\n\n"
+                body += strip_tags(notification['status']['content'])
+
+            self.client.get_client().status_post(body, in_reply_to_id=notification['status']['id'], visibility=replyVisibility)
 
 
 class SupportBot(Bot):
