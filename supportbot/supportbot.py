@@ -44,6 +44,10 @@ class SupportListener(StreamListener):
 
         isAdmin = notification['account']['username'] in self.admins
         if isAdmin:
+            #do not relay if it is no a DM
+            if notification['status']['visibility'] != "direct":
+                return
+
             #relay toot
             body = strip_tags(notification['status']['content']) + "\n\n--@" + notification['account']['username']
             if body.startswith('@' + self.client.config.get('support_bot', 'username') + ' '):
