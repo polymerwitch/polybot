@@ -1,31 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from html.parser import HTMLParser
-
+from html2text import HTML2Text
 
 from bot import Bot
 from mastodon.streaming import StreamListener
 
-
-class MLStripper(HTMLParser):
-    def __init__(self):
-        self.reset()
-        self.strict = False
-        self.convert_charrefs = True
-        self.fed = []
-
-    def handle_data(self, d):
-        self.fed.append(d)
-
-    def get_data(self):
-        return ''.join(self.fed)
-
-
 def strip_tags(html):
-    s = MLStripper()
-    s.feed(html)
-    return s.get_data()
-
+    h = HTML2Text()
+    h.ignore_links = True
+    t = h.handle(html)
+    return t.strip()
 
 class SupportListener(StreamListener):
 
@@ -56,7 +40,7 @@ class SupportListener(StreamListener):
             self.client.get_client().status_post(body, visibility='public')
         else:
             #reply with help message
-            body = "Hi, @" + notification['account']['username'] + "\n\n"
+            body = "Hi, @" + notification['account']['acct'] + "\n\n"
             body += self.client.config.get('support_bot', 'reply_txt',
                                            fallback="Thank you for using Mastodon! I'm just a support bot, but I'm sure our admins will help you soon")
             body += "\n\n"
